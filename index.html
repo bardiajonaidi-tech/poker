@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>حساب‌کتاب پوکر</title>
+<meta name="theme-color" content="#13573a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/vazirmatn@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/vazirmatn@5/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/vazirmatn@5/800.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/lalezar@5/400.css">
+<style>
+html,body{margin:0;height:100%}
+[hidden]{display:none!important}
+img{max-width:100%}
+
+/* Layout: the page is the card table. Felt ground, a wooden-rail header, each player dealt as an ivory playing card, buy-ins as chips, settlement as the dealer's slip.
+   Single committed look (always felt), so no dark/light switch. */
+:root{
+  --felt-hi:#1f7d51; --felt:#13573a; --felt-lo:#0a3523;
+  --rail-hi:#7a4a28; --rail-lo:#3b2011;
+  --card:#fbf7ee; --card-edge:#e4dccb;
+  --ink:#1d1a16; --muted:#7a7062; --line:#e2d9c6;
+  --gold:#d9a93e; --gold-lo:#a87a1c; --cream:#f3ead2;
+  --red:#c0262d; --chipred:#b81f2a; --gain:#167a45; --loss:#c0262d;
+  --on-felt:#eef6ef; --on-felt-muted:#a9cdb8;
+  --fg:var(--ink); --surface:var(--card); --chip:var(--gold);
+  --display:"Lalezar", "Vazirmatn", Tahoma, sans-serif;
+  --font:"Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+  --head:var(--cream); --panel:rgba(0,0,0,.25); --glass:rgba(255,255,255,.1); --glass-line:rgba(255,255,255,.25);
+  --stat-num:var(--gold); --ok-felt:#9fe3bb; --bad-felt:#ffb3ad; --h1-shadow:0 2px 0 rgba(0,0,0,.35); --suit-r:#ff6b6b;
+  color-scheme:dark;
+}
+/* light table: daytime felt, same cards and chips */
+html.light{
+  --felt-hi:#f1f8f3; --felt:#e1efe6; --felt-lo:#cde2d5;
+  --on-felt:#15301f; --on-felt-muted:#4b6a58;
+  --head:#14593f; --panel:rgba(255,255,255,.62); --glass:#ffffff; --glass-line:rgba(20,89,63,.28);
+  --stat-num:#8a6312; --ok-felt:#137a43; --bad-felt:#b3261e; --h1-shadow:none; --suit-r:#c0262d;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--felt-lo)}
+body{
+  background-color:var(--felt);
+  background-image:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.018) 0 2px,transparent 2px 5px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.035) 0 2px,transparent 2px 6px),
+    radial-gradient(130% 90% at 50% 0%,var(--felt-hi) 0%,var(--felt) 45%,var(--felt-lo) 100%);
+  background-attachment:fixed;
+  color:var(--on-felt);font-family:var(--font);font-size:15px;line-height:1.6;
+  padding-inline:16px;padding-block:20px 56px;min-height:100%;
+}
+.wrap{max-width:780px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
+
+/* header: wooden rail around a felt plate with the betting line */
+header{background:linear-gradient(160deg,var(--rail-hi),var(--rail-lo));padding:9px;border-radius:44px;box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
+.plate{background:radial-gradient(120% 140% at 50% 0%,var(--felt-hi),var(--felt) 70%);border-radius:36px;padding:20px 26px;position:relative;
+  display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;box-shadow:inset 0 2px 14px rgba(0,0,0,.45)}
+.plate::before{content:"";position:absolute;inset:8px;border:1.5px dashed rgba(217,169,62,.45);border-radius:30px;pointer-events:none}
+.suits{font-size:.95rem;letter-spacing:.35em;color:var(--head);opacity:.85}
+.suits .r{color:var(--suit-r)}
+h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(1.9rem,6vw,2.6rem);line-height:1.15;color:var(--head);text-shadow:var(--h1-shadow);text-wrap:balance}
+header p{margin:4px 0 0;color:var(--on-felt-muted);font-size:.88rem;max-width:36ch}
+.settings label{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.75rem;color:var(--on-felt-muted);position:relative}
+.settings input{width:150px;text-align:center;font-weight:800;font-size:1.05rem;color:var(--ink);
+  background:var(--gold);border:2px dashed var(--cream);border-radius:999px;padding:8px 14px;box-shadow:0 0 0 3px var(--gold),0 6px 12px rgba(0,0,0,.35)}
+
+input{font:inherit;font-variant-numeric:tabular-nums;border:1px solid var(--line);background:#fffdf7;color:var(--ink);border-radius:8px;padding:7px 10px;min-width:0}
+input::placeholder{color:#a79c88}
+input:focus-visible,button:focus-visible,.pick:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:999px;border:1px solid var(--line);background:#fffdf7;color:var(--ink);padding:7px 14px;font-weight:600;transition:transform .12s ease,box-shadow .12s ease}
+button:active{transform:translateY(1px)}
+button.primary{background:linear-gradient(var(--gold),var(--gold-lo));color:#2a1d05;border-color:transparent;box-shadow:0 3px 0 #7d5a12,0 6px 12px rgba(0,0,0,.25)}
+button.primary:hover{filter:brightness(1.06)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding-inline:8px}
+button.ghost:hover{color:var(--loss)}
+button:disabled{opacity:.6;cursor:default}
+
+h2{font-family:var(--display);font-weight:400;font-size:1.45rem;margin:0;color:var(--head);display:flex;align-items:center;gap:10px}
+h2::before{content:attr(data-suit);font-family:var(--font);font-size:1rem;width:30px;height:30px;display:inline-grid;place-items:center;border-radius:50%;background:var(--card);color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+h2.red::before{color:var(--red)}
+.sec-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.add{display:flex;gap:8px;flex-wrap:wrap}
+.add input{flex:1 1 180px;background:var(--glass);border-color:var(--glass-line);color:var(--on-felt)}
+.add input::placeholder{color:var(--on-felt-muted)}
+
+/* summary: the pot plaques */
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:var(--panel);border:1px solid rgba(217,169,62,.45);border-radius:16px;padding:12px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.stat .lbl{color:var(--on-felt-muted)}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:1.6rem;line-height:1.3;color:var(--stat-num);font-variant-numeric:tabular-nums}
+
+/* players: dealt cards */
+.players{display:flex;flex-direction:column;gap:14px}
+.player{position:relative;background:var(--card);color:var(--ink);border-radius:14px;padding-block:16px 14px;padding-inline:46px 18px;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;
+  box-shadow:0 1px 0 var(--card-edge),0 10px 22px rgba(0,0,0,.32)}
+.players.first .player{animation:deal .4s ease both}
+.players.first .player:nth-child(2){animation-delay:.07s}.players.first .player:nth-child(3){animation-delay:.14s}.players.first .player:nth-child(4){animation-delay:.21s}
+.player::before,.player::after{content:attr(data-suit);position:absolute;font-size:1.25rem;line-height:1;color:var(--ink)}
+.player::before{top:12px;inset-inline-start:14px}
+.player::after{bottom:12px;inset-inline-start:14px;transform:rotate(180deg);opacity:.35}
+.player.red::before,.player.red::after{color:var(--red)}
+@keyframes deal{from{transform:translateY(-8px) rotate(-.6deg);opacity:.4}to{transform:none;opacity:1}}
+.pname{font-family:var(--display);font-weight:400;font-size:1.4rem;line-height:1.2;display:flex;align-items:center;gap:8px}
+.pname .ghost{font-family:var(--font);font-size:.8rem}
+.net{font-family:var(--display);font-weight:400;font-size:1.45rem;font-variant-numeric:tabular-nums;align-self:center;text-align:end;direction:ltr;unicode-bidi:plaintext}
+.net.pos{color:var(--gain)} .net.neg{color:var(--loss)} .net.zero{color:var(--muted)}
+.row2{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;border-top:1px dashed var(--line);padding-top:10px}
+.lbl{font-size:.75rem;color:var(--muted);letter-spacing:.02em}
+.buy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.buy input{width:110px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--gold);color:#2a1d05;border:2px dashed rgba(255,250,235,.9);border-radius:999px;
+  padding-block:2px;padding-inline:12px 4px;font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px var(--gold),0 2px 4px rgba(0,0,0,.25)}
+.chip small{color:#5a430f!important;font-weight:500}
+.chip button{border:none;background:none;padding:0 5px;color:#5a430f;line-height:1;box-shadow:none}
+.chip button:hover{color:var(--chipred)}
+button[data-buy]{background:var(--chipred);color:#fff;border:2px dashed rgba(255,255,255,.85);box-shadow:0 0 0 2px var(--chipred),0 3px 6px rgba(0,0,0,.3);font-weight:800;letter-spacing:.02em}
+button[data-buy]:hover{filter:brightness(1.1)}
+.out{display:flex;gap:6px;align-items:center;margin-inline-start:auto}
+.out input{width:130px;font-weight:700}
+
+.alert{border-radius:12px;padding:10px 14px;background:#fff1cf;color:#6b4a00;font-size:.9rem;border:1px solid #e8c56a}
+.ok{color:var(--ok-felt);font-weight:600;font-size:.9rem}
+
+/* families: a side table on the felt */
+.fam{background:var(--panel);border:1px solid var(--glass-line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.fam h3{font-family:var(--display);font-weight:400;font-size:1.15rem;color:var(--head)}
+.fam .mem{color:var(--on-felt-muted)}
+.fam-list{display:flex;flex-direction:column;gap:8px}
+.fam-item{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px}
+.fam-item .fname{font-weight:800}
+.fam-item .mem{color:var(--muted)}
+.fam-item .net{margin-inline-start:auto;font-size:1.15rem}
+.mem{font-size:.8rem;color:var(--muted)}
+.picks{display:flex;flex-wrap:wrap;gap:8px}
+.pick{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--glass-line);color:var(--on-felt);border-radius:999px;padding:4px 12px;font-size:.88rem;cursor:pointer;user-select:none}
+.pick:has(input:checked){background:var(--card);color:var(--ink);border-color:var(--gold)}
+.pick input{margin:0;accent-color:var(--felt)}
+.fam-form{display:flex;flex-direction:column;gap:10px}
+.fam-form .row{display:flex;gap:8px;flex-wrap:wrap}
+.fam-form .row input{flex:1 1 160px}
+
+/* settlement: the dealer's slip */
+.slip{background:var(--card);color:var(--ink);border-radius:4px 4px 14px 14px;position:relative;margin-top:8px;box-shadow:0 10px 22px rgba(0,0,0,.32)}
+.slip::before{content:"";position:absolute;top:-8px;left:0;right:0;height:8px;
+  background:radial-gradient(circle at 8px 0,transparent 6px,var(--card) 6.5px) 0 0/16px 8px repeat-x}
+.slip ol{list-style:none;margin:0;padding:6px 0}
+.slip li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:12px 18px;border-top:1px dashed var(--line)}
+.slip li:first-child{border-top:none}
+.slip .who{display:flex;flex-direction:column;line-height:1.3}
+.slip .amt{margin-inline-start:auto;font-family:var(--display);font-weight:400;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.arrow{color:var(--muted);font-size:.85rem}
+.from{color:var(--loss);font-weight:800}.to{color:var(--gain);font-weight:800}
+.empty{color:var(--muted);padding:14px;text-align:center}
+.players .empty{background:var(--panel);border:1.5px dashed var(--glass-line);border-radius:14px;color:var(--on-felt-muted)}
+
+.foot{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--glass-line)}
+.foot > div{display:flex;gap:8px;flex-wrap:wrap}
+.note{font-size:.8rem;color:var(--on-felt-muted)}
+#confirmBox{background:var(--card);color:var(--ink);border-color:var(--gold)}
+
+@media (max-width:560px){
+  header{border-radius:28px}.plate{border-radius:22px;padding:18px}.plate::before{border-radius:16px}
+  .summary{grid-template-columns:1fr 1fr}.summary .stat:last-child{grid-column:1/-1}
+  .out{margin-inline-start:0}.player{padding-inline-start:40px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---- app shell: signed-in bar, lobby, room, tabs ---- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.meline{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--on-felt-muted)}
+.meline img{width:28px;height:28px;border-radius:50%;box-shadow:0 0 0 2px var(--gold)}
+.meline b{color:var(--head);font-weight:700}
+.gate{background:var(--card);color:var(--ink);border-radius:16px;padding:24px;text-align:center;box-shadow:0 10px 22px rgba(0,0,0,.32);display:flex;flex-direction:column;gap:8px;align-items:center}
+.gate h2{color:var(--ink)}
+.gate h2::before{display:none}
+.gate p{margin:0;color:var(--muted);max-width:46ch}
+.panel{display:flex;flex-direction:column;gap:14px}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.room-card{all:unset;box-sizing:border-box;cursor:pointer;position:relative;background:var(--card);color:var(--ink);border-radius:14px;padding:16px 18px 14px;
+  box-shadow:0 1px 0 var(--card-edge),0 8px 18px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px;min-width:0;transition:transform .12s ease}
+.room-card:hover{transform:translateY(-2px)}
+.room-card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.room-card .rname{font-family:var(--display);font-size:1.35rem;line-height:1.25;overflow-wrap:anywhere}
+.room-card .rmeta{font-size:.8rem;color:var(--muted)}
+.room-card .badge{position:absolute;top:12px;inset-inline-end:12px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 10px;background:var(--gold);color:#2a1d05}
+.badge.live{background:var(--chipred);color:#fff}
+.badge.live::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.badge.ghostb{background:rgba(255,255,255,.12);color:var(--on-felt-muted)}
+.create{display:flex;gap:8px;flex-wrap:wrap}
+.create input{flex:1 1 200px;background:var(--glass);border-color:var(--glass-line);color:var(--on-felt)}
+.create input::placeholder{color:var(--on-felt-muted)}
+.felt-note{font-size:.85rem;color:var(--on-felt-muted);margin:0}
+.room-head{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.room-head h2{font-size:1.7rem}
+.room-head .grow{flex:1 1 auto;min-width:0}
+.back{background:var(--glass);color:var(--on-felt);border-color:var(--glass-line)}
+.tabs{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:999px;width:fit-content;max-width:100%;overflow-x:auto}
+.tabs button{background:transparent;border:none;color:var(--on-felt-muted);white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.unitbox{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--on-felt-muted)}
+.unitbox input{width:130px;text-align:center;font-weight:800;color:var(--ink);background:var(--gold);border:2px dashed var(--cream);border-radius:999px;padding:5px 10px;box-shadow:0 0 0 2px var(--gold)}
+.unitbox .val{font-weight:800;color:var(--gold)}
+.readonly .admin-only{display:none!important}
+.viewer-note{background:var(--panel);border:1px dashed var(--glass-line);border-radius:12px;padding:8px 14px;font-size:.85rem;color:var(--on-felt-muted)}
+.idle{background:var(--panel);border:1.5px dashed var(--glass-line);border-radius:16px;padding:28px 18px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;color:var(--on-felt-muted)}
+.idle .big{font-family:var(--display);font-size:1.5rem;color:var(--head)}
+
+/* ---- history ---- */
+.hist{display:flex;flex-direction:column;gap:10px}
+.hgame{background:var(--card);color:var(--ink);border-radius:14px;box-shadow:0 8px 18px rgba(0,0,0,.28);overflow:hidden}
+.hgame summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:12px 16px}
+.hgame summary::-webkit-details-marker{display:none}
+.hgame summary:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.hdate{font-family:var(--display);font-size:1.25rem;line-height:1.2;text-align:center;min-width:64px}
+.hdate small{display:block;font-family:var(--font);font-size:.72rem;color:var(--muted)}
+.hsum{font-size:.85rem;color:var(--muted);min-width:0}
+.hsum b{color:var(--ink)}
+.hpot{font-family:var(--display);font-size:1.15rem;color:var(--gold-lo);text-align:end}
+.hbody{border-top:1px dashed var(--line);padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+.ntable{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+.ntable th{font-size:.72rem;color:var(--muted);font-weight:600;text-align:start;padding:4px 6px;border-bottom:1px solid var(--line)}
+.ntable td{padding:6px;border-bottom:1px dashed var(--line)}
+.ntable tr:last-child td{border-bottom:none}
+.ntable .num{text-align:end;white-space:nowrap;unicode-bidi:plaintext}
+.pos{color:var(--gain)} .neg{color:var(--loss)} .zero{color:var(--muted)}
+.tx{font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+
+/* ---- performance ---- */
+.chartcard{background:var(--card);color:var(--ink);border-radius:14px;padding:16px;box-shadow:0 8px 18px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px;min-width:0}
+.chartcard h3{margin:0;font-family:var(--display);font-weight:400;font-size:1.2rem}
+.chartcard .sub{font-size:.8rem;color:var(--muted);margin-top:-6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.chartbox{position:relative;direction:ltr}
+.chartbox svg{display:block;width:100%;height:auto;overflow:visible}
+.chartbox text{font-family:var(--font)}
+.tip{position:absolute;pointer-events:none;background:#1d1a16;color:#fbf7ee;border-radius:10px;padding:8px 10px;font-size:.78rem;line-height:1.5;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);min-width:150px;z-index:2}
+.tip .tt{font-weight:700;margin-bottom:2px}
+.tip .tr{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.tip .tr i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tip .tr span:last-child{direction:ltr;font-variant-numeric:tabular-nums}
+.rank{font-family:var(--display);font-size:1.1rem;color:var(--gold-lo);width:28px}
+
+#room:not(.readonly) .viewer-only{display:none!important}
+
+.hside{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+[dir="rtl"] .hside{align-items:flex-end}
+.prefs{display:flex;gap:6px}
+.pref{background:var(--panel);color:var(--on-felt);border:1px solid var(--glass-line);font-size:.8rem;padding:5px 12px}
+.pref:hover{border-color:var(--gold)}
+.plate .pref{background:rgba(0,0,0,.22);color:#f3ead2;border-color:rgba(255,255,255,.25)}
+html.light .plate .pref{background:rgba(255,255,255,.7);color:#14593f;border-color:rgba(20,89,63,.3)}
+.plate .meline{color:var(--on-felt-muted)}
+@media (max-width:560px){.hside{align-items:stretch;width:100%}.prefs{justify-content:flex-start}}
+
+/* ---- auth ---- */
+.authcard{max-width:420px;margin-inline:auto;width:100%}
+.auth-tabs{display:flex;gap:4px;background:#efe7d4;padding:4px;border-radius:999px}
+.auth-tabs button{flex:1;background:transparent;border:none;color:var(--muted)}
+.auth-tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.authform{display:flex;flex-direction:column;gap:10px;width:100%}
+.authform input{width:100%;padding:10px 12px}
+.authform input[dir="ltr"]{text-align:left}
+#authMsg{min-height:1.4em;margin:0}
+.avatar{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;background:var(--gold);color:#2a1d05;font-weight:800;font-size:.85rem;box-shadow:0 0 0 2px var(--cream)}
+.meline .pref{padding:3px 10px}
+
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap" dir="rtl" lang="fa">
+  <header><div class="plate">
+    <div>
+      <div class="suits">♠<span class="r">♥</span>♣<span class="r">♦</span></div>
+      <h1 data-i18n="appTitle">حساب‌کتاب پوکر</h1>
+      <p data-i18n="tagline"></p>
+    </div>
+    <div class="hside">
+      <div class="prefs" role="group" aria-label="Settings">
+        <button type="button" class="pref" id="themeBtn"></button>
+        <button type="button" class="pref" id="langBtn"></button>
+      </div>
+      <div class="meline" id="meline" hidden><span class="avatar" id="meAvatar" aria-hidden="true"></span><span><span data-i18n="signedInAs"></span> <b id="meName"></b></span><button type="button" class="pref" id="signOutBtn" data-i18n="signOut"></button></div>
+    </div>
+  </div></header>
+
+  <section class="gate" id="gate">
+    <h2 id="gateTitle"></h2>
+    <p id="gateText"></p>
+  </section>
+
+  <section class="gate authcard" id="auth" hidden>
+    <h2 data-i18n="authTitle"></h2>
+    <div class="auth-tabs" id="authTabs" role="tablist">
+      <button type="button" role="tab" data-mode="in" data-i18n="signIn"></button>
+      <button type="button" role="tab" data-mode="up" data-i18n="signUp"></button>
+    </div>
+    <form class="authform" id="authForm">
+      <input id="authName" data-i18n-ph="namePh" autocomplete="name" maxlength="40">
+      <input id="authEmail" type="email" data-i18n-ph="emailPh" autocomplete="email" dir="ltr" required>
+      <input id="authPass" type="password" data-i18n-ph="passPh" autocomplete="current-password" dir="ltr" required>
+      <button class="primary" type="submit" id="authSubmit"></button>
+      <p id="authMsg" class="mem" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="panel" id="lobby" hidden>
+    <div class="sec-head"><h2 data-suit="♣" data-i18n="rooms"></h2></div>
+    <form class="create" id="createForm">
+      <input id="roomName" data-i18n-ph="roomNamePh" autocomplete="off" maxlength="60">
+      <button class="primary" type="submit" data-i18n="createRoom"></button>
+    </form>
+    <p class="felt-note" id="createNote"></p>
+    <div class="rooms" id="roomList"></div>
+  </section>
+
+  <section class="panel" id="room" hidden>
+    <div class="room-head">
+      <button class="back" id="backBtn" type="button"></button>
+      <div class="grow">
+        <h2 data-suit="♦" class="red" id="roomTitle"></h2>
+        <span class="felt-note" id="roomOwner"></span>
+      </div>
+      <div class="unitbox"><span data-i18n="unitLabel"></span>
+        <input id="unit" class="admin-only" inputmode="numeric">
+        <span class="val viewer-only" id="unitView"></span>
+      </div>
+    </div>
+    <div class="viewer-note viewer-only" data-i18n="viewerNote"></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-live" data-tab="live" aria-selected="true" data-i18n="tabLive"></button>
+      <button role="tab" id="tab-history" data-tab="history" aria-selected="false" data-i18n="tabHistory"></button>
+      <button role="tab" id="tab-chart" data-tab="chart" aria-selected="false" data-i18n="tabChart"></button>
+    </div>
+
+    <div class="panel" id="pane-live">
+      <div class="idle" id="idle" hidden>
+        <span class="big" data-i18n="noGame"></span>
+        <span id="idleText"></span>
+        <button class="primary admin-only" id="startBtn" type="button" data-i18n="startGame"></button>
+      </div>
+      <div class="panel" id="liveBody" hidden>
+        <section class="summary" id="summary"></section>
+        <section class="panel">
+          <div class="sec-head">
+            <h2 data-suit="♠" data-i18n="players"></h2>
+            <form class="add admin-only" id="addForm">
+              <input id="newName" data-i18n-ph="newPlayerPh" autocomplete="off">
+              <button class="primary" type="submit" data-i18n="add"></button>
+            </form>
+          </div>
+          <div class="players first" id="players"></div>
+        </section>
+        <section class="panel">
+          <h2 class="red" data-suit="♥" data-i18n="settleTitle"></h2>
+          <div id="check"></div>
+          <div class="fam" id="famBox">
+            <div class="sec-head"><h3 style="margin:0" data-i18n="families"></h3><span class="mem" data-i18n="famHint"></span></div>
+            <div class="fam-list" id="famList"></div>
+            <form class="fam-form admin-only" id="famForm">
+              <div class="picks" id="famPicks"></div>
+              <div class="row">
+                <input id="famName" data-i18n-ph="famNamePh" autocomplete="off">
+                <button class="primary" type="submit" data-i18n="makeFamily"></button>
+              </div>
+              <span class="mem" id="famMsg"></span>
+            </form>
+          </div>
+          <div class="slip"><ol id="settle"></ol></div>
+        </section>
+        <div class="foot">
+          <span class="note" id="saveState"></span>
+          <div>
+            <button id="xlsBtn" class="primary" hidden data-i18n="excel"></button>
+            <button id="copyBtn" data-i18n="copy"></button>
+            <button id="endBtn" class="admin-only" data-i18n="endGame"></button>
+          </div>
+        </div>
+        <div id="confirmBox" class="alert" hidden>
+          <span id="confirmText"></span>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="primary" id="yesEnd" data-i18n="yesEnd"></button>
+            <button id="noEnd" data-i18n="no"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="pane-history" hidden>
+      <div class="hist" id="histList"></div>
+    </div>
+
+    <div class="panel" id="pane-chart" hidden>
+      <div class="chartcard">
+        <h3 data-i18n="chartTitle"></h3>
+        <div class="sub" data-i18n="chartSub"></div>
+        <div class="legend" id="legend"></div>
+        <div class="chartbox" id="chartBox"></div>
+      </div>
+      <div class="chartcard">
+        <h3 data-i18n="boardTitle"></h3>
+        <div class="tablewrap"><table class="ntable" id="board"></table></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
